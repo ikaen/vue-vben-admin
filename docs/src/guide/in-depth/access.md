@@ -11,7 +11,7 @@ outline: deep
 
 ## 前端访问控制
 
-**实现原理**: 在前端固定写死路由的权限，指定路由有哪些权限可以查看。只初始化通用的路由，需要权限才能访问的路由没有被加入路由表内。在登陆后或者其他方式获取用户角色后，通过角色去遍历路由表，获取该角色可以访问的路由表，生成路由表，再通过 `router.addRoute` 添加到路由实例，实现权限的过滤。
+**实现原理**: 在前端固定写死路由的权限，指定路由有哪些权限可以查看。只初始化通用的路由，需要权限才能访问的路由没有被加入路由表内。在登录后或者其他方式获取用户角色后，通过角色去遍历路由表，获取该角色可以访问的路由表，生成路由表，再通过 `router.addRoute` 添加到路由实例，实现权限的过滤。
 
 **缺点**: 权限相对不自由，如果后台改动角色，前台也需要跟着改动。适合角色较固定的系统
 
@@ -114,8 +114,6 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
 ```ts
 const dashboardMenus = [
   {
-    // 这里固定写死 BasicLayout，不可更改
-    component: 'BasicLayout',
     meta: {
       order: -1,
       title: 'page.dashboard.title',
@@ -143,6 +141,16 @@ const dashboardMenus = [
         },
       },
     ],
+  },
+  {
+    name: 'Test',
+    path: '/test',
+    component: '/test/index',
+    meta: {
+      title: 'page.test',
+      // 部分特殊页面如果不需要基础布局（页面顶部和侧边栏），可将noBasicLayout设置为true
+      noBasicLayout: true,
+    },
   },
 ];
 ```
@@ -296,7 +304,7 @@ const { hasAccessByRoles } = useAccess();
 
 #### 指令方式
 
-> 指令支持绑定单个或多个权限码。单个时可以直接传入字符串或数组中包含一个权限码，多个权限码则传入数组。
+> 指令支持绑定单个或多个角色。单个时可以直接传入字符串或数组中包含一个角色，多个角色均可访问则传入数组。
 
 ```vue
 <template>

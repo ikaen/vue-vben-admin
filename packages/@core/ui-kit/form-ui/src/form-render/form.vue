@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import type { GenericObject } from 'vee-validate';
 import type { ZodTypeAny } from 'zod';
 
-import type { FormRenderProps, FormSchema, FormShape } from '../types';
+import type {
+  FormCommonConfig,
+  FormRenderProps,
+  FormSchema,
+  FormShape,
+} from '../types';
 
 import { computed } from 'vue';
 
 import { Form } from '@vben-core/shadcn-ui';
-import { cn, isString } from '@vben-core/shared/utils';
-
-import { type GenericObject } from 'vee-validate';
+import { cn, isString, mergeWithArrayOverride } from '@vben-core/shared/utils';
 
 import { provideFormRenderProps } from './context';
 import { useExpandable } from './expandable';
@@ -17,12 +21,16 @@ import { getBaseRules, getDefaultValueInZodStack } from './helper';
 
 interface Props extends FormRenderProps {}
 
-const props = withDefaults(defineProps<Props>(), {
-  collapsedRows: 1,
-  commonConfig: () => ({}),
-  showCollapseButton: false,
-  wrapperClass: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
-});
+const props = withDefaults(
+  defineProps<Props & { globalCommonConfig?: FormCommonConfig }>(),
+  {
+    collapsedRows: 1,
+    commonConfig: () => ({}),
+    globalCommonConfig: () => ({}),
+    showCollapseButton: false,
+    wrapperClass: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
+  },
+);
 
 const emits = defineEmits<{
   submit: [event: any];
@@ -72,19 +80,27 @@ const formCollapsed = computed(() => {
 });
 
 const computedSchema = computed(
-  (): ({ commonComponentProps: Record<string, any> } & FormSchema)[] => {
+  (): (Omit<FormSchema, 'formFieldProps'> & {
+    commonComponentProps: Record<string, any>;
+    formFieldProps: Record<string, any>;
+  })[] => {
     const {
+      colon = false,
       componentProps = {},
       controlClass = '',
       disabled,
+      disabledOnChangeListener = true,
+      disabledOnInputListener = true,
+      emptyStateValue = undefined,
       formFieldProps = {},
       formItemClass = '',
       hideLabel = false,
       hideRequiredMark = false,
       labelClass = '',
       labelWidth = 100,
+      modelPropName = '',
       wrapperClass = '',
-    } = props.commonConfig;
+    } = mergeWithArrayOverride(props.commonConfig, props.globalCommonConfig);
     return (props.schema || []).map((schema, index) => {
       const keepIndex = keepFormItemIndex.value;
 
@@ -95,10 +111,15 @@ const computedSchema = computed(
           : false;
 
       return {
+        colon,
         disabled,
+        disabledOnChangeListener,
+        disabledOnInputListener,
+        emptyStateValue,
         hideLabel,
         hideRequiredMark,
         labelWidth,
+        modelPropName,
         wrapperClass,
         ...schema,
         commonComponentProps: componentProps,

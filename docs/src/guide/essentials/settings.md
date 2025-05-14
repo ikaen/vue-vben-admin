@@ -164,6 +164,7 @@ import { defineOverridesPreferences } from '@vben/preferences';
 /**
  * @description 项目配置文件
  * 只需要覆盖项目中的一部分配置，不需要的配置不用覆盖，会自动使用默认配置
+ * !!! 更改配置后请清空缓存，否则可能不生效
  */
 export const overridesPreferences = defineOverridesPreferences({
   // overrides
@@ -186,6 +187,7 @@ const defaultPreferences: Preferences = {
     contentCompact: 'wide',
     defaultAvatar:
       'https://unpkg.com/@vbenjs/static-source@0.1.7/source/avatar-v1.webp',
+    defaultHomePath: '/analytics',
     dynamicTitle: true,
     enableCheckUpdates: true,
     enablePreferences: true,
@@ -193,7 +195,7 @@ const defaultPreferences: Preferences = {
     isMobile: false,
     layout: 'sidebar-nav',
     locale: 'zh-CN',
-    loginExpiredMode: 'modal',
+    loginExpiredMode: 'page',
     name: 'Vben Admin',
     preferencesButtonPosition: 'auto',
     watermark: false,
@@ -212,14 +214,16 @@ const defaultPreferences: Preferences = {
     enable: true,
     icp: '',
     icpLink: '',
+    settingShow: true,
   },
   footer: {
-    enable: true,
+    enable: false,
     fixed: false,
   },
   header: {
     enable: true,
     hidden: false,
+    menuAlign: 'start',
     mode: 'fixed',
   },
   logo: {
@@ -239,25 +243,30 @@ const defaultPreferences: Preferences = {
     globalSearch: true,
   },
   sidebar: {
+    autoActivateChild: false,
     collapsed: false,
+    collapsedButton: true,
     collapsedShowTitle: false,
     enable: true,
     expandOnHover: true,
-    extraCollapse: true,
+    extraCollapse: false,
+    fixedButton: true,
     hidden: false,
-    width: 230,
+    width: 224,
   },
   tabbar: {
-    dragable: true,
+    draggable: true,
     enable: true,
-    height: 36,
+    height: 38,
     keepAlive: true,
+    maxCount: 0,
+    middleClickToClose: false,
     persist: true,
     showIcon: true,
     showMaximize: true,
     showMore: true,
-    showRefresh: true,
     styleType: 'chrome',
+    wheelable: true,
   },
   theme: {
     builtinType: 'default',
@@ -268,7 +277,7 @@ const defaultPreferences: Preferences = {
     mode: 'dark',
     radius: '0.5',
     semiDarkHeader: false,
-    semiDarkSidebar: true,
+    semiDarkSidebar: false,
   },
   transition: {
     enable: true,
@@ -282,6 +291,7 @@ const defaultPreferences: Preferences = {
     languageToggle: true,
     lockScreen: true,
     notification: true,
+    refresh: true,
     sidebarToggle: true,
     themeToggle: true,
   },
@@ -310,6 +320,8 @@ interface AppPreferences {
   contentCompact: ContentCompactType;
   // /** 应用默认头像 */
   defaultAvatar: string;
+  /** 默认首页地址 */
+  defaultHomePath: string;
   // /** 开启动态标题 */
   dynamicTitle: boolean;
   /** 是否开启检查更新 */
@@ -364,6 +376,8 @@ interface CopyrightPreferences {
   icp: string;
   /** 备案号链接 */
   icpLink: string;
+  /** 设置面板是否显示*/
+  settingShow?: boolean;
 }
 
 interface FooterPreferences {
@@ -378,6 +392,8 @@ interface HeaderPreferences {
   enable: boolean;
   /** 顶栏是否隐藏,css-隐藏 */
   hidden: boolean;
+  /** 顶栏菜单位置 */
+  menuAlign: LayoutHeaderMenuAlignType;
   /** header显示模式 */
   mode: LayoutHeaderModeType;
 }
@@ -399,8 +415,12 @@ interface NavigationPreferences {
 }
 
 interface SidebarPreferences {
+  /** 点击目录时自动激活子菜单   */
+  autoActivateChild: boolean;
   /** 侧边栏是否折叠 */
   collapsed: boolean;
+  /** 侧边栏折叠按钮是否可见 */
+  collapsedButton: boolean;
   /** 侧边栏折叠时，是否显示title */
   collapsedShowTitle: boolean;
   /** 侧边栏是否可见 */
@@ -409,6 +429,8 @@ interface SidebarPreferences {
   expandOnHover: boolean;
   /** 侧边栏扩展区域是否折叠 */
   extraCollapse: boolean;
+  /** 侧边栏固定按钮是否可见 */
+  fixedButton: boolean;
   /** 侧边栏是否隐藏 - css */
   hidden: boolean;
   /** 侧边栏宽度 */
@@ -430,13 +452,17 @@ interface ShortcutKeyPreferences {
 
 interface TabbarPreferences {
   /** 是否开启多标签页拖拽 */
-  dragable: boolean;
+  draggable: boolean;
   /** 是否开启多标签页 */
   enable: boolean;
   /** 标签页高度 */
   height: number;
   /** 开启标签页缓存功能 */
   keepAlive: boolean;
+  /** 限制最大数量 */
+  maxCount: number;
+  /** 是否点击中键时关闭标签 */
+  middleClickToClose: boolean;
   /** 是否持久化标签 */
   persist: boolean;
   /** 是否开启多标签页图标 */
@@ -445,10 +471,10 @@ interface TabbarPreferences {
   showMaximize: boolean;
   /** 显示更多按钮 */
   showMore: boolean;
-  /** 显示刷新按钮 */
-  showRefresh: boolean;
   /** 标签页风格 */
   styleType: TabsStyleType;
+  /** 是否开启鼠标滚轮响应 */
+  wheelable: boolean;
 }
 
 interface ThemePreferences {
@@ -494,6 +520,8 @@ interface WidgetPreferences {
   lockScreen: boolean;
   /** 是否显示通知部件 */
   notification: boolean;
+  /** 显示刷新按钮 */
+  refresh: boolean;
   /** 是否显示侧边栏显示/隐藏部件 */
   sidebarToggle: boolean;
   /** 是否显示主题切换部件 */
@@ -536,5 +564,6 @@ interface Preferences {
 
 - `overridesPreferences`方法只需要覆盖项目中的一部分配置，不需要的配置不用覆盖，会自动使用默认配置。
 - 任何配置项都可以覆盖，只需要在`overridesPreferences`方法内覆盖即可，不要修改默认配置文件。
+- 更改配置后请清空缓存，否则可能不生效。
 
 :::

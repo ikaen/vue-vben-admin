@@ -1,4 +1,6 @@
-import { type RouteLocationNormalized, useRoute, useRouter } from 'vue-router';
+import type { RouteLocationNormalized } from 'vue-router';
+
+import { useRoute, useRouter } from 'vue-router';
 
 import { useTabbarStore } from '@vben/stores';
 
@@ -39,8 +41,8 @@ export function useTabs() {
     await tabbarStore.toggleTabPin(tab || route);
   }
 
-  async function refreshTab() {
-    await tabbarStore.refresh(router);
+  async function refreshTab(name?: string) {
+    await tabbarStore.refresh(name || router);
   }
 
   async function openTabInNewWindow(tab?: RouteLocationNormalized) {

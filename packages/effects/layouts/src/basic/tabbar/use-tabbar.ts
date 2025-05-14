@@ -1,6 +1,8 @@
-import type { TabDefinition } from '@vben/types';
-import type { IContextMenuItem } from '@vben-core/tabs-ui';
 import type { RouteLocationNormalizedGeneric } from 'vue-router';
+
+import type { TabDefinition } from '@vben/types';
+
+import type { IContextMenuItem } from '@vben-core/tabs-ui';
 
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -156,7 +158,7 @@ export function useTabbar() {
       },
       {
         disabled: disabledRefresh,
-        handler: refreshTab,
+        handler: () => refreshTab(),
         icon: RotateCw,
         key: 'reload',
         text: $t('preferences.tabbar.contextMenu.reload'),
@@ -207,7 +209,8 @@ export function useTabbar() {
         text: $t('preferences.tabbar.contextMenu.closeAll'),
       },
     ];
-    return menus;
+
+    return menus.filter((item) => tabbarStore.getMenuList.includes(item.key));
   };
 
   return {
